@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>贪吃蛇</title>
+    <style>
+        #mycanvas {
+            display: block;
+            margin: 20px auto;
+            border: 2px solid orangered;
+            background: url(../img/1.jpg) no-repeat;
+        }
+        
+        #hecanvas {
+            display: block;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="hecanvas" width="300" height="50"></canvas>
+    <canvas id="mycanvas" width="400" height="400"></canvas>
+
+    <script>
+        let canvas = document.querySelector('#mycanvas');
+        let cxt = canvas.getContext('2d');
+        let cvs = document.querySelector('#hecanvas');
+        let ct = cvs.getContext('2d');
+        let direction = 2; // 方向 0左 1上 2右 3下
+        let timer = null;
+        let x = 8,
+            y = 8,
+            speed = 70,
+            len = 10,
+            size = 8;
+        let map = [];
+        //食物坐标
+        let randX,
+            randY;
+
+        function game() {
+            let grdd = ct.createLinearGradient(0, 0, 400, 400);
+            grdd.addColorStop(0, 'red'); //添加颜色
+            grdd.addColorStop(0.2, 'orange');
+            grdd.addColorStop(0.4, 'yellow');
+            grdd.addColorStop(0.6, 'green');
+            grdd.addColorStop(0.7, 'blue');
+            grdd.addColorStop(0.8, 'gray');
+            grdd.addColorStop(1, 'pink');
+            cxt.fillStyle = grdd;
+
+
+            switch (direction) {
+                case 0:
+                    x = x - size;
+                    break;
+                case 1:
+                    y = y - size;
+                    break;
+                case 2:
+                    x = x + size;
+                    break;
+                case 3:
+                    y = y + size;
+                    break;
+            }
+            //边界判断
+            if (x >= canvas.width || x < 0 || y >= canvas.height || y < 0) {
+                clearInterval(timer);
+                alert('game over!');
+                location.reload();
+            }
+            //碰撞检测
+            let carch = map.some(elm => elm.x === x && elm.y === y);
+            if (carch) {
+                clearInterval(timer);
+                alert('game over!');
+                location.reload();
+            }
+            //长度判断
+            if (map.length > len) {
+                let first = map.shift();
+                cxt.clearRect(first.x, first.y, size, size);
+            }
+
+            //保存运动轨迹
+            map.push({
+                x: x,
+                y: y
+            });
+            //填充
+            cxt.fillRect(x, y, size, size);
+
+
+            if (randX == x && randY == y) {
+                len++;
+                getFood();
+                ct.clearRect(0, 0, 300, 50)
+                let scores = (len - 10) * 100;
+                ct.font = '40px Arial';
+                let grd = ct.createLinearGradient(0, 0, 200, 200);
+                grd.addColorStop(0, 'blue'); //添加颜色
+                grd.addColorStop(0.5, 'red');
+                grd.addColorStop(1, 'yellow');
+                ct.fillStyle = grd;
+                if (scores < 501) {
+                    ct.strokeText(`养性：${scores}`, 2, 43);
+                    ct.fillText(`养性：${scores}`, 0, 40);
+
+                } else if (scores > 500 && scores < 1001) {
+                    speed = 60;
+                    clearInterval(timer);
+                    timer = setInterval(game, speed);
+                    ct.strokeText(`腾空：${scores}`, 2, 43);
+                    ct.fillText(`腾空：${scores}`, 0, 40);
+                } else if (scores > 1000 && scores < 1501) {
+                    speed = 55;
+                    clearInterval(timer);
+                    timer = setInterval(game, speed);
+                    ct.strokeText(`凌云：${scores}`, 2, 43);
+                    ct.fillText(`凌云：${scores}`, 0, 40);
+                } else if (scores > 1500 && scores < 2001) {
+                    speed = 50;
+                    clearInterval(timer);
+                    timer = setInterval(game, speed);
+                    ct.strokeText(`山海：${scores}`, 2, 43);
+                    ct.fillText(`山海：${scores}`, 0, 40);
+                } else if (scores > 2000 && scores < 2301) {
+                    speed = 40;
+                    clearInterval(timer);
+                    timer = setInterval(game, speed);
+                    ct.strokeText(`日月：${scores}`, 2, 43);
+                    ct.fillText(`日月：${scores}`, 0, 40);
+                } else if (scores > 2300 && scores < 3001) {
+                    speed = 35;
+                    clearInterval(timer);
+                    timer = setInterval(game, speed);
+                    ct.strokeText(`无敌：${scores}`, 2, 43);
+                    ct.fillText(`无敌：${scores}`, 0, 40);
+                } else {
+                    speed = 30;
+                    clearInterval(timer);
+                    timer = setInterval(game, speed);
+                    ct.strokeText(`皇者：${scores}`, 2, 43);
+                    ct.fillText(`皇者：${scores}`, 0, 40);
+                }
+
+                // console.log(speed);
+
+            }
+
+        }
+        //随机食物
+        function getFood() {
+            randX = Math.floor(Math.random() * 50) * 8;
+            randY = Math.floor(Math.random() * 50) * 8;
+            let has = map.some(elm => {
+                return elm.x === randX && elm.y === randY
+            });
+            if (has) {
+                return arguments.callee();
+            }
+            cxt.fillStyle = 'red';
+            cxt.fillRect(randX, randY, size, size);
+        }
+        getFood();
+        //加定时器
+        timer = setInterval(game, speed);
+        // 函数节流
+        function thottle(callback, wait) {
+            let previous = 0; //上次的执行时间
+            return function() {
+                let now = Date.now(); //获得当前时间戳
+                let args = arguments; //获得参数
+                if (now - previous > wait) {
+                    callback.apply(this, args); //调用回调函数
+                    previous = now; //更新每一次的执行时间
+                }
+            }
+        }
+
+        //获取键盘输入
+        document.onkeydown = thottle(function(ev) {
+            if (ev.keyCode >= 37 && ev.keyCode <= 40) {
+
+                if (Math.abs(ev.keyCode - 37 - direction) != 2) {
+                    direction = ev.keyCode - 37;
+                }
+            }
+        }, 35);
+    </script>
+</body>
+
+</html>
